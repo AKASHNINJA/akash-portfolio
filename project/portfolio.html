@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Portfolio — Implementation & Solutions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          heading: ["'Instrument Serif'", "serif"],
+          body: ["'Barlow'", "sans-serif"],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  html, body { background: #000; color: #fff; }
+  body { font-family: 'Barlow', sans-serif; -webkit-font-smoothing: antialiased; }
+
+  .liquid-glass {
+    background: rgba(255, 255, 255, 0.04);
+    background-blend-mode: luminosity;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: none;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  .liquid-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(180deg,
+      rgba(255,255,255,0.45) 0%,
+      rgba(255,255,255,0.15) 20%,
+      rgba(255,255,255,0) 40%,
+      rgba(255,255,255,0) 60%,
+      rgba(255,255,255,0.15) 80%,
+      rgba(255,255,255,0.45) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  .liquid-glass-strong {
+    background: rgba(255, 255, 255, 0.06);
+    background-blend-mode: luminosity;
+    backdrop-filter: blur(50px);
+    -webkit-backdrop-filter: blur(50px);
+    border: none;
+    box-shadow: 4px 4px 4px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,0.15);
+    position: relative;
+    overflow: hidden;
+  }
+  .liquid-glass-strong::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(180deg,
+      rgba(255,255,255,0.5) 0%,
+      rgba(255,255,255,0.2) 20%,
+      rgba(255,255,255,0) 40%,
+      rgba(255,255,255,0) 60%,
+      rgba(255,255,255,0.2) 80%,
+      rgba(255,255,255,0.5) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Animated bg fields — stand-ins for each company without recreating brand UI */
+  .bg-field { position: absolute; inset: 0; overflow: hidden; }
+  .bg-field .orb {
+    position: absolute; border-radius: 9999px; filter: blur(80px); opacity: 0.7;
+    animation: drift 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    0%   { transform: translate3d(0,0,0) scale(1); }
+    50%  { transform: translate3d(40px,-30px,0) scale(1.1); }
+    100% { transform: translate3d(-30px,20px,0) scale(0.95); }
+  }
+  @keyframes slowpan {
+    0%   { transform: scale(1.05) translate(0,0); }
+    100% { transform: scale(1.15) translate(-2%, -1%); }
+  }
+  .ken { animation: slowpan 20s ease-in-out infinite alternate; }
+
+  /* Hero radial */
+  .hero-field {
+    background:
+      radial-gradient(60% 50% at 50% 35%, rgba(120,140,200,0.35) 0%, rgba(0,0,0,0) 60%),
+      radial-gradient(80% 60% at 50% 100%, rgba(60,30,80,0.5) 0%, rgba(0,0,0,0) 70%),
+      #000;
+  }
+
+  /* Everstage = deep navy/indigo */
+  .field-everstage {
+    background:
+      radial-gradient(50% 60% at 30% 30%, rgba(30,60,140,0.55), transparent 70%),
+      radial-gradient(50% 60% at 80% 70%, rgba(20,40,90,0.6), transparent 70%),
+      linear-gradient(180deg, #050813, #0a1024);
+  }
+  /* Chargebee = warm coral/orange */
+  .field-chargebee {
+    background:
+      radial-gradient(50% 60% at 25% 35%, rgba(255,90,40,0.45), transparent 70%),
+      radial-gradient(50% 60% at 80% 75%, rgba(180,50,30,0.55), transparent 70%),
+      linear-gradient(180deg, #120604, #1d0a06);
+  }
+  /* Rippling = deep purple */
+  .field-rippling {
+    background:
+      radial-gradient(50% 60% at 30% 30%, rgba(120,30,140,0.55), transparent 70%),
+      radial-gradient(50% 60% at 80% 70%, rgba(70,15,90,0.6), transparent 70%),
+      linear-gradient(180deg, #0a040d, #1a0820);
+  }
+  /* School = warm dawn */
+  .field-school {
+    background:
+      radial-gradient(60% 60% at 50% 30%, rgba(220,160,90,0.35), transparent 70%),
+      radial-gradient(60% 60% at 50% 100%, rgba(120,40,30,0.5), transparent 70%),
+      linear-gradient(180deg, #0c0703, #150a05);
+  }
+  /* College = teal/forest */
+  .field-college {
+    background:
+      radial-gradient(60% 60% at 30% 30%, rgba(30,120,110,0.45), transparent 70%),
+      radial-gradient(60% 60% at 75% 75%, rgba(20,70,60,0.6), transparent 70%),
+      linear-gradient(180deg, #03100c, #061a14);
+  }
+
+  /* Generic placeholder image (subtle stripes + label) */
+  .placeholder-img {
+    background-color: rgba(255,255,255,0.04);
+    background-image: repeating-linear-gradient(135deg,
+      rgba(255,255,255,0.05) 0 12px,
+      rgba(255,255,255,0.02) 12px 24px);
+    display:flex; align-items:center; justify-content:center;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    text-align:center; padding: 24px;
+  }
+
+  /* 3D tilt card for school photo */
+  .tilt-stage { perspective: 1400px; }
+  .tilt-card {
+    transform: rotateY(-14deg) rotateX(6deg);
+    transform-style: preserve-3d;
+    transition: transform 600ms cubic-bezier(.2,.8,.2,1);
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.7),
+      0 8px 24px rgba(0,0,0,0.5),
+      inset 0 1px 1px rgba(255,255,255,0.12);
+  }
+  .tilt-stage:hover .tilt-card { transform: rotateY(-6deg) rotateX(2deg); }
+
+  /* Blur-in animation */
+  @keyframes blurIn {
+    0% { filter: blur(10px); opacity: 0; transform: translateY(20px); }
+    100% { filter: blur(0); opacity: 1; transform: translateY(0); }
+  }
+  .blur-in { opacity: 0; animation: blurIn 0.9s cubic-bezier(.2,.8,.2,1) forwards; }
+  .blur-in.d1 { animation-delay: 0.6s; }
+  .blur-in.d2 { animation-delay: 0.9s; }
+  .blur-in.d3 { animation-delay: 1.15s; }
+
+  /* Word-by-word stagger for headings */
+  .word-anim { display: inline-block; opacity: 0; filter: blur(10px); transform: translateY(40px); animation: blurIn 0.9s cubic-bezier(.2,.8,.2,1) forwards; }
+
+  /* IO reveal */
+  .io-hidden { opacity: 0; transform: translateY(30px); filter: blur(8px); transition: opacity 1s ease, transform 1s cubic-bezier(.2,.8,.2,1), filter 1s ease; }
+  .io-shown  { opacity: 1; transform: none; filter: blur(0); }
+
+  .grain { position: absolute; inset: 0; pointer-events: none; opacity: 0.04; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .fade-top    { background: linear-gradient(to bottom, #000, transparent); }
+  .fade-bottom { background: linear-gradient(to top, #000, transparent); }
+
+  /* Marquee for skills */
+  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .marquee-track { display: flex; width: max-content; animation: marquee 40s linear infinite; }
+
+  .ring-soft { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); }
+
+  /* Make sure embedded gifs/photos use cover */
+  .img-cover img { width: 100%; height: 100%; object-fit: cover; display:block; }
+
+  /* Timeline rail */
+  .timeline-rail { background: linear-gradient(to bottom, rgba(255,255,255,0.0), rgba(255,255,255,0.25), rgba(255,255,255,0.0)); }
+
+  ::selection { background: rgba(255,255,255,0.2); color: #fff; }
+
+  @keyframes floatY {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+  }
+  @keyframes pulseDot {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%     { opacity: .5; transform: scale(0.85); }
+  }
+</style>
+</head>
+<body class="bg-black">
+
+<!-- ============================ HERO (cinematic, full-screen video) ============================ -->
+<section class="hero-section min-h-screen bg-black overflow-hidden relative flex flex-col">
+  <!-- Background video, shifted down 17% -->
+  <!-- Background: ambient gradient field (replaces typing video) -->
+  <div class="absolute inset-0" style="background:
+    radial-gradient(50% 60% at 30% 35%, rgba(120,60,160,0.55), transparent 70%),
+    radial-gradient(50% 60% at 80% 70%, rgba(40,60,140,0.6), transparent 70%),
+    linear-gradient(180deg,#04060f,#0a0716);"></div>
+  <div class="bg-field">
+    <div class="orb" style="width:600px;height:600px;left:-10%;top:10%;background:rgba(80,110,180,0.45);"></div>
+    <div class="orb" style="width:500px;height:500px;right:-8%;top:30%;background:rgba(120,60,160,0.45); animation-delay:-6s;"></div>
+    <div class="orb" style="width:420px;height:420px;left:30%;top:55%;background:rgba(40,60,120,0.55); animation-delay:-12s;"></div>
+  </div>
+
+  <!-- Subtle dark overlay for legibility -->
+  <div class="absolute inset-0 bg-black/20 z-0"></div>
+  <!-- Bottom blend into next section -->
+  <div class="absolute bottom-0 left-0 right-0 fade-bottom z-0" style="height: 240px;"></div>
+
+  <!-- Navigation -->
+  <nav class="hero-nav relative z-20 pl-6 pr-6 py-6">
+    <div class="liquid-glass rounded-full px-6 py-3 flex items-center justify-between max-w-5xl mx-auto">
+      <div class="flex items-center gap-8">
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#about" class="text-white/80 hover:text-white transition-colors text-sm font-medium">Schooling</a>
+          <a href="#experience" class="text-white/80 hover:text-white transition-colors text-sm font-medium">Experience</a>
+          <a href="#skills" class="text-white/80 hover:text-white transition-colors text-sm font-medium">Skills</a>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram" class="liquid-glass rounded-full p-2 text-white/85 hover:text-white inline-flex">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </a>
+        <a href="https://twitter.com" target="_blank" rel="noopener" aria-label="Twitter" class="liquid-glass rounded-full p-2 text-white/85 hover:text-white inline-flex">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
+        </a>
+        <a href="https://github.com" target="_blank" rel="noopener" aria-label="GitHub" class="liquid-glass rounded-full p-2 text-white/85 hover:text-white inline-flex">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero content -->
+  <div class="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-12 text-center -translate-y-[20%]">
+
+
+    <!-- 3D animated portrait scene removed -->
+
+
+    <h1 id="hero-heading" class="text-5xl md:text-6xl lg:text-7xl text-white mb-8 tracking-tight whitespace-nowrap" style="font-family: 'Instrument Serif', serif; font-style: italic;">
+      Akash Premkumar
+    </h1>
+
+    <div class="max-w-xl w-full space-y-4">
+      <div class="flex justify-center pt-2">
+        <a href="#about" class="liquid-glass rounded-full px-8 py-3 text-white text-sm font-medium hover:bg-white/5 transition-colors">Click here to learn about my schooling</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Social icons footer removed -->
+</section>
+
+<!-- ============================ ABOUT (school + college) ============================ -->
+<section id="about" class="relative bg-black overflow-hidden">
+  <div class="absolute inset-0" style="background:
+    radial-gradient(50% 60% at 25% 30%, rgba(220,160,90,0.3), transparent 70%),
+    radial-gradient(50% 60% at 75% 70%, rgba(30,120,110,0.4), transparent 70%),
+    linear-gradient(180deg,#0a0604,#070f0c);"></div>
+  <div class="grain"></div>
+  <div class="absolute top-0 left-0 right-0 fade-top" style="height: 160px;"></div>
+  <div class="absolute bottom-0 left-0 right-0 fade-bottom" style="height: 160px;"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6 lg:px-12 pt-20 pb-24">
+    <div class="flex items-center gap-3 mb-10 io-hidden">
+      <span class="liquid-glass rounded-full px-3.5 py-1 font-medium text-white/85" style="font-size: 11px">Schooling</span>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- SCHOOL -->
+      <div class="liquid-glass rounded-2xl p-7 md:p-8 io-hidden">
+        <span class="liquid-glass-strong rounded-full px-3 py-1 text-[11px] font-medium text-white/85">2004 — 2019 · School</span>
+        <h3 class="font-heading italic text-3xl md:text-4xl mt-4 leading-[0.95] tracking-tight">Where curiosity became craft.</h3>
+        <p class="mt-4 text-white/70 font-body font-light text-sm leading-relaxed">
+</p>
+        <ul class="mt-5 space-y-2.5 text-sm text-white/80 font-body font-light">
+          <li class="flex gap-3"><span class="text-white/40">—</span><span><span class="text-white">10 points</span> in 10th Standard.</span></li>
+          <li class="flex gap-3"><span class="text-white/40">—</span><span><span class="text-white">94.6%</span> in 12th Standard.</span></li>
+          <li class="flex gap-3"><span class="text-white/40">—</span><span>Karate <span class="text-white">Black Belt</span>, Regional Volleyball Player, Cricket Enthusiast.</span></li>
+        </ul>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/80">The Hindu Colony Chellammal Vidyalaya Sr. Sec. School</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/80">Chennai, Tamil Nadu, India</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/80">CBSE</span>
+        </div>
+      </div>
+
+      <!-- COLLEGE -->
+      <div class="liquid-glass rounded-2xl p-7 md:p-8 io-hidden">
+        <span class="liquid-glass-strong rounded-full px-3 py-1 text-[11px] font-medium text-white/85">2019 — 2023 · College</span>
+        <h3 class="font-heading italic text-3xl md:text-4xl mt-4 leading-[0.95] tracking-tight">Electrical and Electronics Engineer</h3>
+        <p class="mt-4 text-white/70 font-body font-light text-sm leading-relaxed">Bachelor's in Engineering at SSN College. Spent four years balancing technical projects with business clubs — which is where I discovered that I loved the seam between product, sales, and the customer.</p>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/80">SSN College of Engineering</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/80">B.E.</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/80">Tamil Nadu</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ EXPERIENCE INTRO ============================ -->
+<section id="experience" class="bg-black relative">
+  <div class="max-w-6xl mx-auto px-6 lg:px-12 pt-28 pb-10">
+    <div class="flex items-center gap-3 mb-6 io-hidden">
+      <span class="liquid-glass rounded-full px-3.5 py-1 text-[11px] font-medium text-white/80">Experience</span>
+      <span class="text-xs text-white/40 font-body">2023 → Present</span>
+    </div>
+    <h2 class="io-hidden font-heading italic text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[0.95] max-w-3xl">
+      Three companies. One throughline:<br/>
+      <span class="text-white/60">making customers successful.</span>
+    </h2>
+  </div>
+</section>
+
+<!-- ============================ EXP 1 — EVERSTAGE ============================ -->
+<section class="relative overflow-hidden">
+  <div class="absolute inset-0 field-everstage ken"></div>
+  <div class="grain"></div>
+  <div class="absolute top-0 left-0 right-0 fade-top" style="height: 120px;"></div>
+  <div class="absolute bottom-0 left-0 right-0 fade-bottom" style="height: 220px;"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6 lg:px-12 pt-16 pb-32">
+    <div class="grid md:grid-cols-12 gap-10 items-start">
+      <div class="md:col-span-5 io-hidden">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="liquid-glass rounded-full px-3.5 py-1 text-[11px] font-medium text-white/85">01 / Everstage</span>
+          <span class="text-xs text-white/50 font-body">Jan 2023 — Sep 2024</span>
+        </div>
+        <h3 class="font-heading italic text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[0.92]">The Beginning</h3>
+        <p class="mt-5 text-white/70 font-body font-light text-base leading-relaxed">Started as a Solution Specialist Intern, finished leading SMB and Enterprise onboardings end-to-end. </p>
+        <!-- Brand image card -->
+        <div class="tilt-stage io-hidden mt-8">
+          <div class="tilt-card liquid-glass rounded-2xl overflow-hidden aspect-[16/10] ring-soft" style="transform: rotateY(-8deg) rotateX(4deg); background: radial-gradient(60% 60% at 30% 30%, rgba(40,90,200,0.45), transparent 70%), radial-gradient(60% 60% at 80% 70%, rgba(20,40,90,0.6), transparent 70%), linear-gradient(180deg,#050a1a,#0a1530);">
+            <div class="absolute inset-0 bg-white flex items-center justify-center">
+              <img src="assets/everstage-logo.jpg" alt="Everstage" class="w-full h-full object-cover" />
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 flex flex-wrap gap-2">
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/85">Salesforce</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/85">NetSuite</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/85">HubSpot</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/85">Excel</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/85">Customer Experience</span>
+        </div>
+      </div>
+
+      <div class="md:col-span-7 io-hidden">
+        <!-- Two stacked role cards -->
+        <div class="liquid-glass rounded-2xl p-7 md:p-8">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-body font-medium text-base">Solution Specialist · Full-time</h4>
+            <span class="text-xs text-white/55 font-body">May 2023 — Sep 2024</span>
+          </div>
+          <p class="text-xs text-white/45 mb-4 font-body">1 yr 5 mos · Chennai, Tamil Nadu, India · Hybrid</p>
+          <ul class="space-y-3 text-sm text-white/75 font-body font-light leading-relaxed">
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Onboarded multiple SMB and Enterprise customers, fostering strong client relationships and seamless transitions.</span></li>
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Served as the primary point of contact through the engagement lifecycle — concerns, updates, satisfaction.</span></li>
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Partnered closely with Technical teams to translate client requirements and accelerate the sales process.</span></li>
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Worked across CRMs: Salesforce, NetSuite and HubSpot.</span></li>
+          </ul>
+        </div>
+
+        <div class="liquid-glass rounded-2xl p-7 md:p-8 mt-5">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-body font-medium text-base">Solution Specialist · Intern</h4>
+            <span class="text-xs text-white/55 font-body">Jan 2023 — May 2023</span>
+          </div>
+          <p class="text-xs text-white/45 mb-4 font-body">5 mos · Chennai · Hybrid</p>
+          <p class="text-sm text-white/75 font-body font-light leading-relaxed">
+            Ramping phase — learned the foundations of sales compensation, product, and the customer onboarding process.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ EXP 2 — CHARGEBEE ============================ -->
+<section class="relative overflow-hidden">
+  <div class="absolute inset-0 field-chargebee ken"></div>
+  <div class="grain"></div>
+  <div class="absolute top-0 left-0 right-0 fade-top" style="height: 220px;"></div>
+  <div class="absolute bottom-0 left-0 right-0 fade-bottom" style="height: 220px;"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6 lg:px-12 py-32">
+    <div class="grid md:grid-cols-12 gap-10 items-start">
+      <div class="md:col-span-7 io-hidden order-2 md:order-1">
+        <div class="liquid-glass rounded-2xl p-7 md:p-8" style="height: 479.75px">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-body font-medium text-base">Implementation Consultant · Full-time</h4>
+            <span class="text-xs text-white/55 font-body">Sep 2024 — Mar 2026</span>
+          </div>
+          <p class="text-xs text-white/45 mb-4 font-body">1 yr 7 mos · Chennai, Tamil Nadu, India · Hybrid</p>
+          <ul class="space-y-3 text-sm text-white/75 font-body font-light leading-relaxed">
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Implemented SMB and Enterprise customer projects across SaaS, e-commerce and fintech — managing configurations, integrations and data migrations end-to-end and accelerating revenue realization.</span></li>
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Built internal enablement tools — RevRec Simulator (automating revenue recognition scenarios) and Language Pack Translator (multilingual onboarding) — reducing setup time by <span class="text-white">35%</span>.</span></li>
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Partnered with Product and Engineering on AI-driven automation, eliminating <span class="text-white">40%</span> of manual configuration effort and pulling implementation turnaround from weeks to days.</span></li>
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Advocated for customer needs during onboarding, translating pain points into product insights adopted into the roadmap.</span></li>
+          </ul>
+
+          <div class="mt-6 flex flex-wrap gap-2">
+            <span class="liquid-glass-strong rounded-full px-3 py-1 text-[11px] text-white/85">Product Management</span>
+            <span class="liquid-glass-strong rounded-full px-3 py-1 text-[11px] text-white/85">Billing Systems</span>
+            <span class="liquid-glass-strong rounded-full px-3 py-1 text-[11px] text-white/85">RevRec</span>
+            <span class="liquid-glass-strong rounded-full px-3 py-1 text-[11px] text-white/85">Integrations</span>
+            <span class="liquid-glass-strong rounded-full px-3 py-1 text-[11px] text-white/85">Data Migration</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="md:col-span-5 io-hidden order-1 md:order-2">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="liquid-glass rounded-full px-3.5 py-1 text-[11px] font-medium text-white/85">02 / Chargebee</span>
+          <span class="text-xs text-white/50 font-body">Sep 2024 — Mar 2026</span>
+        </div>
+        <h3 class="font-heading italic text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[0.92]" style="font-size: 57px">Into the Billing World</h3>
+        <p class="mt-5 text-white/70 font-body font-light text-base leading-relaxed">Implementation Consultant on subscription billing and revenue management, delivering go-lives across SaaS, e-commerce and fintech</p>
+        <!-- Brand image card -->
+        <div class="tilt-stage io-hidden mt-8">
+          <div class="tilt-card liquid-glass rounded-2xl overflow-hidden aspect-[16/10] ring-soft" style="transform: rotateY(8deg) rotateX(4deg); background: radial-gradient(60% 60% at 25% 35%, rgba(255,90,40,0.5), transparent 70%), radial-gradient(60% 60% at 80% 75%, rgba(180,50,30,0.6), transparent 70%), linear-gradient(180deg,#1a0805,#2a0f08);">
+            <div class="absolute inset-0 bg-white flex items-center justify-center">
+              <img src="assets/chargebee-logo.png" alt="Chargebee" class="w-full h-full object-cover" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ EXP 3 — RIPPLING ============================ -->
+<section class="relative overflow-hidden">
+  <div class="absolute inset-0 field-rippling ken"></div>
+  <div class="grain"></div>
+  <div class="absolute top-0 left-0 right-0 fade-top" style="height: 220px;"></div>
+  <div class="absolute bottom-0 left-0 right-0 fade-bottom" style="height: 220px;"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6 lg:px-12 py-32">
+    <div class="grid md:grid-cols-12 gap-10 items-start">
+      <div class="md:col-span-5 io-hidden">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="liquid-glass rounded-full px-3.5 py-1 text-[11px] font-medium text-white/85">03 / Rippling</span>
+          <span class="text-xs text-white/50 font-body">Mar 2026 — Present</span>
+        </div>
+        <h3 class="font-heading italic text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[0.92]">Payroll, HR and IT</h3>
+        <p class="mt-5 text-white/70 font-body font-light text-base leading-relaxed">
+          Implementation Manager on the US Accountant IM pod. Partnering one-on-one with US clients to land
+          Rippling's HR, payroll, benefits and IT platform end-to-end.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-2">
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/85">HR Tech</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/85">Payroll</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/85">Benefits Admin</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-xs text-white/85">US Clients</span>
+        </div>
+        <!-- Brand image card -->
+        <div class="tilt-stage io-hidden mt-8">
+          <div class="tilt-card liquid-glass rounded-2xl overflow-hidden aspect-[16/10] ring-soft" style="transform: rotateY(-8deg) rotateX(4deg); background: radial-gradient(60% 60% at 30% 30%, rgba(140,40,160,0.55), transparent 70%), radial-gradient(60% 60% at 80% 70%, rgba(70,15,90,0.65), transparent 70%), linear-gradient(180deg,#0e050f,#1f0a26);">
+            <div class="absolute inset-0 bg-white flex items-center justify-center">
+              <img src="assets/rippling-logo.webp" alt="Rippling" class="w-full h-full object-cover" style="width: 403.663px;" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="md:col-span-7 io-hidden">
+        <div class="liquid-glass rounded-2xl p-7 md:p-8">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-body font-medium text-base">Implementation Manager · Accountant IM (US)</h4>
+            <span class="text-xs text-white/55 font-body">Mar 2026 — Present</span>
+          </div>
+          <p class="text-xs text-white/45 mb-4 font-body">2 mos · Greater Bengaluru Area · Hybrid</p>
+          <ul class="space-y-3 text-sm text-white/75 font-body font-light leading-relaxed">
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Partner one-on-one with clients to develop custom implementation plans across HR, Payroll, Benefits, IT and adjacent products tailored to their business objectives.</span></li>
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Manage the implementation end-to-end — aligning on timelines and goals, ensuring each milestone meets operational needs.</span></li>
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Drive adoption with bespoke guidance, best practices and insights that help clients maximize the platform.</span></li>
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Partner with Sales, AM, TAM and Support for seamless hand-offs and long-term customer success.</span></li>
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Loop with Product and Engineering — feedback, partnership on technical issues, advocacy for customer-driven enhancements.</span></li>
+            <li class="flex gap-3"><span class="text-white/40">—</span><span>Build processes &amp; best practices that fold customer feedback into operational efficiency.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ PROJECTS ============================ -->
+<section id="projects" class="relative overflow-hidden bg-black">
+  <div class="absolute inset-0 opacity-60" style="background:
+    radial-gradient(50% 60% at 20% 30%, rgba(80,90,120,0.35), transparent 70%),
+    radial-gradient(50% 60% at 80% 70%, rgba(40,40,60,0.45), transparent 70%);
+    filter: saturate(0.4);"></div>
+  <div class="grain"></div>
+  <div class="absolute top-0 left-0 right-0 fade-top" style="height: 200px;"></div>
+  <div class="absolute bottom-0 left-0 right-0 fade-bottom" style="height: 200px;"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6 lg:px-12 py-32">
+    <div class="flex items-center gap-3 mb-6 io-hidden">
+      <span class="liquid-glass rounded-full px-3.5 py-1 text-[11px] font-medium text-white/85">Projects</span>
+      <span class="text-xs text-white/40 font-body">Things I've shipped</span>
+    </div>
+    <h2 class="io-hidden font-heading italic text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[0.95] max-w-3xl mb-14">
+      Projects Built
+    </h2>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- Project 1 -->
+      <div class="liquid-glass rounded-2xl p-8 io-hidden">
+        <div class="flex items-center justify-between mb-5">
+          <span class="liquid-glass-strong rounded-full px-3 py-1 text-[11px] text-white/85">01 / Internal tool</span>
+          <span class="text-xs text-white/40 font-body">Chargebee · 2025</span>
+        </div>
+        <h3 class="font-heading italic text-3xl md:text-4xl tracking-tight leading-[0.95]">RevRec Simulator</h3>
+        <p class="mt-4 text-white/70 font-body font-light text-sm leading-relaxed">
+          Automated revenue recognition scenarios so onboarding teams could preview RevRec outcomes before going live —
+          eliminating a manual back-and-forth that previously took days per customer.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <span class="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/80">RevRec</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/80">Internal Tooling</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/80">Setup −35%</span>
+        </div>
+      </div>
+
+      <!-- Project 2 -->
+      <div class="liquid-glass rounded-2xl p-8 io-hidden">
+        <div class="flex items-center justify-between mb-5">
+          <span class="liquid-glass-strong rounded-full px-3 py-1 text-[11px] text-white/85">02 / Internal tool</span>
+          <span class="text-xs text-white/40 font-body">Chargebee · 2025</span>
+        </div>
+        <h3 class="font-heading italic text-3xl md:text-4xl tracking-tight leading-[0.95]">Language Pack Translator</h3>
+        <p class="mt-4 text-white/70 font-body font-light text-sm leading-relaxed">
+          Multilingual onboarding helper that streamlined customer language pack setup —
+          letting non-English customers go live in their own locale without engineering involvement.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <span class="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/80">Localization</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/80">Customer Onboarding</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/80">Self-serve</span>
+        </div>
+      </div>
+
+      <!-- Project 3 -->
+      <div class="liquid-glass rounded-2xl p-8 io-hidden">
+        <div class="flex items-center justify-between mb-5">
+          <span class="liquid-glass-strong rounded-full px-3 py-1 text-[11px] text-white/85">03 / Initiative</span>
+          <span class="text-xs text-white/40 font-body">Chargebee · 2025</span>
+        </div>
+        <h3 class="font-heading italic text-3xl md:text-4xl tracking-tight leading-[0.95]">AI-driven Config Automation</h3>
+        <p class="mt-4 text-white/70 font-body font-light text-sm leading-relaxed">
+          Partnered with Product and Engineering to embed AI into the implementation flow —
+          eliminating <span class="text-white">40%</span> of manual configuration effort and pulling turnaround from weeks to days.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <span class="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/80">AI Automation</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/80">Cross-functional</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/80">Effort −40%</span>
+        </div>
+      </div>
+
+      <!-- Project 4 -->
+      <div class="liquid-glass rounded-2xl p-8 io-hidden">
+        <div class="flex items-center justify-between mb-5">
+          <span class="liquid-glass-strong rounded-full px-3 py-1 text-[11px] text-white/85">04 / Customer impact</span>
+          <span class="text-xs text-white/40 font-body">Across roles</span>
+        </div>
+        <h3 class="font-heading italic text-3xl md:text-4xl tracking-tight leading-[0.95]">Customer Advocacy Loop</h3>
+        <p class="mt-4 text-white/70 font-body font-light text-sm leading-relaxed">
+          Built a repeatable practice for translating onboarding pain into structured product feedback —
+          multiple items adopted into the Chargebee roadmap from real customer friction.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-2">
+          <span class="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/80">Voice of Customer</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/80">Product Partnership</span>
+          <span class="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/80">Roadmap Influence</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SKILLS GRID ============================ -->
+<section id="skills" class="bg-black relative">
+  <div class="max-w-6xl mx-auto px-6 lg:px-12 py-28">
+    <div class="flex items-center gap-3 mb-6 io-hidden">
+      <span class="liquid-glass rounded-full px-3.5 py-1 text-[11px] font-medium text-white/85">What I do</span>
+    </div>
+    <h2 class="io-hidden font-heading italic text-4xl md:text-5xl lg:text-6xl tracking-tight leading-[0.95] max-w-3xl">
+      Technical depth.<br/>
+      <span class="text-white/60">Operator instincts.</span>
+    </h2>
+
+    <div class="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- card -->
+      <div class="liquid-glass rounded-2xl p-6 io-hidden">
+        <div class="liquid-glass-strong rounded-full w-10 h-10 flex items-center justify-center mb-5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h4 class="font-body font-medium text-base">End-to-end Implementations</h4>
+        <p class="text-white/60 font-body font-light text-sm mt-2 leading-relaxed">SMB to Enterprise. Configuration, integrations, data migration. Owned go-lives that stick.</p>
+      </div>
+      <div class="liquid-glass rounded-2xl p-6 io-hidden">
+        <div class="liquid-glass-strong rounded-full w-10 h-10 flex items-center justify-center mb-5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-4-3-7-7-7-2 0-3 1-3 3 0 1 1 2 2 2 1 0 2-1 2-2"/></svg>
+        </div>
+        <h4 class="font-body font-medium text-base">Customer Advocacy</h4>
+        <p class="text-white/60 font-body font-light text-sm mt-2 leading-relaxed">Translating onboarding pain into product insight. Multiple items shipped onto Chargebee's roadmap.</p>
+      </div>
+      <div class="liquid-glass rounded-2xl p-6 io-hidden">
+        <div class="liquid-glass-strong rounded-full w-10 h-10 flex items-center justify-center mb-5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+        </div>
+        <h4 class="font-body font-medium text-base">Internal Tooling</h4>
+        <p class="text-white/60 font-body font-light text-sm mt-2 leading-relaxed">Built RevRec Simulator and Language Pack Translator — used by the team daily.</p>
+      </div>
+      <div class="liquid-glass rounded-2xl p-6 io-hidden">
+        <div class="liquid-glass-strong rounded-full w-10 h-10 flex items-center justify-center mb-5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h4 class="font-body font-medium text-base">Cross-functional Glue</h4>
+        <p class="text-white/60 font-body font-light text-sm mt-2 leading-relaxed">Sales, AM, TAM, Product, Engineering. The one keeping everyone aligned on a single customer outcome.</p>
+      </div>
+    </div>
+
+    <!-- Skills marquee -->
+    <div class="mt-12 overflow-hidden liquid-glass rounded-full py-4">
+      <div class="marquee-track">
+        <!-- duplicated for seamless loop -->
+        <div class="flex gap-10 px-10 whitespace-nowrap font-heading italic text-2xl md:text-3xl text-white/85">
+          <span>Salesforce</span><span class="text-white/30">·</span>
+          <span>NetSuite</span><span class="text-white/30">·</span>
+          <span>HubSpot</span><span class="text-white/30">·</span>
+          <span>Chargebee</span><span class="text-white/30">·</span>
+          <span>Rippling</span><span class="text-white/30">·</span>
+          <span>RevRec</span><span class="text-white/30">·</span>
+          <span>Billing Systems</span><span class="text-white/30">·</span>
+          <span>SQL</span><span class="text-white/30">·</span>
+          <span>Excel</span><span class="text-white/30">·</span>
+          <span>Product Management</span><span class="text-white/30">·</span>
+          <span>Customer Experience</span><span class="text-white/30">·</span>
+        </div>
+        <div class="flex gap-10 px-10 whitespace-nowrap font-heading italic text-2xl md:text-3xl text-white/85" aria-hidden="true">
+          <span>Salesforce</span><span class="text-white/30">·</span>
+          <span>NetSuite</span><span class="text-white/30">·</span>
+          <span>HubSpot</span><span class="text-white/30">·</span>
+          <span>Chargebee</span><span class="text-white/30">·</span>
+          <span>Rippling</span><span class="text-white/30">·</span>
+          <span>RevRec</span><span class="text-white/30">·</span>
+          <span>Billing Systems</span><span class="text-white/30">·</span>
+          <span>SQL</span><span class="text-white/30">·</span>
+          <span>Excel</span><span class="text-white/30">·</span>
+          <span>Product Management</span><span class="text-white/30">·</span>
+          <span>Customer Experience</span><span class="text-white/30">·</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ CTA + FOOTER ============================ -->
+<section id="contact" class="relative overflow-hidden">
+  <div class="absolute inset-0" style="background:
+    radial-gradient(60% 60% at 50% 30%, rgba(120,140,200,0.35), transparent 70%),
+    radial-gradient(60% 70% at 50% 100%, rgba(60,30,80,0.55), transparent 70%),
+    #050510;"></div>
+  <div class="grain"></div>
+  <div class="absolute top-0 left-0 right-0 fade-top" style="height: 200px;"></div>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-6 lg:px-12 py-40 text-center">
+    <h2 class="io-hidden font-heading italic text-5xl md:text-6xl lg:text-7xl leading-[0.85]">
+      Let's build<br/>something good.
+    </h2>
+    <p class="io-hidden mt-6 max-w-xl mx-auto text-white/65 font-body font-light text-base md:text-lg leading-relaxed">
+      Get in touch — I'd love to hear from you.
+    </p>
+    <div class="io-hidden mt-10 flex items-center justify-center gap-3 flex-wrap">
+      <a href="mailto:hello@example.com" class="liquid-glass-strong rounded-full px-6 py-3 text-sm inline-flex items-center gap-2">
+        Email me
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  // IntersectionObserver-driven reveals
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        e.target.classList.add('io-shown');
+        io.unobserve(e.target);
+      }
+    }
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.io-hidden').forEach(el => io.observe(el));
+
+  /* ─── Hero video custom fade loop ─── */
+  (function () {
+    const video = document.getElementById('hero-video');
+    if (!video) return;
+    const FADE_MS = 500;
+    const FADE_OUT_LEAD = 0.55; // seconds before end
+    let fadingOut = false;
+    let raf = null;
+
+    function setOpacity(v) { video.style.opacity = String(v); }
+    function fadeTo(target, ms) {
+      if (raf) cancelAnimationFrame(raf);
+      const start = performance.now();
+      const from = parseFloat(video.style.opacity || '0');
+      function tick(now) {
+        const t = Math.min(1, (now - start) / ms);
+        setOpacity(from + (target - from) * t);
+        if (t < 1) raf = requestAnimationFrame(tick);
+        else raf = null;
+      }
+      raf = requestAnimationFrame(tick);
+    }
+    function fadeIn()  { fadingOut = false; fadeTo(1, FADE_MS); }
+    function fadeOut() { fadingOut = true;  fadeTo(0, FADE_MS); }
+
+    video.addEventListener('loadeddata', fadeIn);
+    video.addEventListener('play',       () => { if (parseFloat(video.style.opacity||'0') < 0.99 && !fadingOut) fadeIn(); });
+    video.addEventListener('timeupdate', () => {
+      if (!video.duration) return;
+      const remaining = video.duration - video.currentTime;
+      if (!fadingOut && remaining <= FADE_OUT_LEAD) fadeOut();
+    });
+    video.addEventListener('ended', () => {
+      setOpacity(0);
+      setTimeout(() => {
+        try { video.currentTime = 0; video.play(); fadeIn(); } catch (e) {}
+      }, 100);
+    });
+
+    // Try playing immediately
+    video.play().catch(() => {});
+  })();
+</script>
+
+<!-- ─── Tweaks panel ─── -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+
+<div id="tweaks-root"></div>
+
+<script type="text/babel">
+  const PortfolioTweakDefaults = /*EDITMODE-BEGIN*/{
+    "heroHeadline": "Akash Premkumar",
+    "videoOffset": 17,
+    "contentOffset": 20,
+    "headlineSize": 72,
+    "darkenOverlay": 20,
+    "showSocials": true
+  }/*EDITMODE-END*/;
+
+  function PortfolioTweaks() {
+    const [t, setTweak] = useTweaks(PortfolioTweakDefaults);
+
+    React.useEffect(() => {
+      const v = document.getElementById('hero-video');
+      if (v) v.style.transform = `translateY(${t.videoOffset}%)`;
+      const content = document.querySelector('.hero-section .flex-1');
+      if (content) content.style.transform = `translateY(-${t.contentOffset}%)`;
+      const heading = document.getElementById('hero-heading');
+      if (heading) heading.style.fontSize = t.headlineSize + 'px';
+      const overlay = document.querySelector('.hero-section .absolute.bg-black\\/20, .hero-section .hero-overlay');
+      // simpler: target all matching by selector pattern
+      const o = document.querySelector('.hero-section > div.absolute.inset-0');
+      if (o) o.style.background = `rgba(0,0,0,${t.darkenOverlay/100})`;
+      const h = document.getElementById('hero-heading');
+      if (h) h.textContent = t.heroHeadline;
+      const socials = document.querySelector('.hero-section .relative.z-10.flex.justify-center.gap-4.pb-12');
+      if (socials) socials.style.display = t.showSocials ? '' : 'none';
+    }, [t]);
+
+    return (
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Hero copy" />
+        <TweakText  label="Headline"  value={t.heroHeadline} onChange={(v) => setTweak('heroHeadline', v)} />
+
+        <TweakSection label="Layout" />
+        <TweakSlider label="Video offset"   value={t.videoOffset}   min={0}  max={40} unit="%" onChange={(v) => setTweak('videoOffset', v)} />
+        <TweakSlider label="Content offset" value={t.contentOffset} min={0}  max={40} unit="%" onChange={(v) => setTweak('contentOffset', v)} />
+        <TweakSlider label="Headline size"  value={t.headlineSize}  min={32} max={120} unit="px" onChange={(v) => setTweak('headlineSize', v)} />
+        <TweakSlider label="Darken overlay" value={t.darkenOverlay} min={0}  max={70} unit="%" onChange={(v) => setTweak('darkenOverlay', v)} />
+
+        <TweakSection label="Visibility" />
+        <TweakToggle label="Social icons"    value={t.showSocials}    onChange={(v) => setTweak('showSocials', v)} />
+      </TweaksPanel>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<PortfolioTweaks />);
+</script>
+
+</body>
+</html>
