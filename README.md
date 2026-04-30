@@ -1,25 +1,113 @@
-# CODING AGENTS: READ THIS FIRST
+# Akash Premkumar — Portfolio
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+Personal portfolio of **Akash Premkumar**, Implementation Manager at Rippling.  
+Live at: [akashninja.github.io/akash-portfolio/project/portfolio.html](https://akashninja.github.io/akash-portfolio/project/portfolio.html)
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+---
 
-## What you should do — IMPORTANT
+## Tech Stack
 
-**Read the chat transcripts first.** There are 1 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+| Layer | Technology |
+|---|---|
+| Markup | HTML5 |
+| Styling | Tailwind CSS (CDN), custom CSS (liquid-glass, animations) |
+| Fonts | Google Fonts — Instrument Serif (headings), Barlow (body) |
+| Icons | Inline SVG (no icon library dependency) |
+| Interactivity | Vanilla JavaScript — IntersectionObserver scroll reveals, video fade loop |
+| Hosting | GitHub Pages |
 
-**Read `project/portfolio.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+No build step, no framework, no bundler — single `portfolio.html` file.
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+---
 
-## About the design files
+## Page Map
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+```
+┌─────────────────────────────────────────────┐
+│  HERO                                        │
+│  Full-viewport looping background video      │
+│  Gradient nav bar: Schooling · Work          │
+│  Experience · Projects · Contact Me          │
+│  GitHub + Email icons (top right)            │
+│  "Akash Premkumar" heading                   │
+│  Scroll Down indicator (bottom)              │
+├─────────────────────────────────────────────┤
+│  SCHOOLING                                   │
+│  Two cards side by side:                     │
+│  • The Hindu Colony Chellammal Vidyalaya     │
+│    (2004–2019, CBSE, 10pts, 94.6%, Karate)  │
+│  • SSN College of Engineering                │
+│    (2019–2023, B.E. EEE)                    │
+├─────────────────────────────────────────────┤
+│  EXPERIENCE — intro                          │
+│  "Three companies. One throughline."         │
+├─────────────────────────────────────────────┤
+│  EVERSTAGE  (Jan 2023 – Sep 2024)            │
+│  Deep navy gradient background               │
+│  Role cards: Intern → Solution Specialist    │
+│  Brand logo card                             │
+├─────────────────────────────────────────────┤
+│  CHARGEBEE  (Sep 2024 – Mar 2026)            │
+│  Warm coral gradient background              │
+│  Role card: Implementation Consultant        │
+│  Brand logo card                             │
+├─────────────────────────────────────────────┤
+│  RIPPLING  (Mar 2026 – Present)              │
+│  Deep purple gradient background             │
+│  Role card: Implementation Manager (US)      │
+│  Brand logo card                             │
+├─────────────────────────────────────────────┤
+│  PROJECTS                                    │
+│  2×2 grid of clickable cards:               │
+│  01 RevRec Simulator (link)                  │
+│  02 Language Pack Translator (link)          │
+│  03 AI-driven Config Automation              │
+│  04 Bulk Coupon Uploader (link)              │
+├─────────────────────────────────────────────┤
+│  SKILLS                                      │
+│  "Technical depth. Operator instincts."      │
+│  4 skill cards + scrolling marquee           │
+│  (SQL · REST APIs · Data Migration · etc.)   │
+├─────────────────────────────────────────────┤
+│  CONTACT                                     │
+│  "Let's build something good."               │
+│  Email Me → opens Gmail compose              │
+└─────────────────────────────────────────────┘
+```
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
+---
 
-## Bundle contents
+## Content Summary
 
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `Portfolio` project files (HTML prototypes, assets, components)
+The portfolio covers Akash's full career trajectory across three companies in the SaaS/HR tech space:
+
+- **Everstage** — Started as a Solution Specialist Intern, grew to leading SMB and Enterprise onboardings end-to-end (1 yr 9 mos).
+- **Chargebee** — Implementation Consultant on subscription billing and revenue management. Built internal tooling (RevRec Simulator, Language Pack Translator, Bulk Coupon Uploader) that reduced setup time by 35% and manual config effort by 40%.
+- **Rippling** — Current role as Implementation Manager on the US Accountant IM pod, delivering HR, Payroll, Benefits and IT platform implementations for US clients.
+
+The **Skills** section reflects an Implementation Manager / Forward Deployed Engineer profile: SQL, REST APIs, Webhooks, Data Migration, Solution Architecture, Postman, Jira, Workflow Automation, Change Management, Python, and more.
+
+---
+
+## Project Structure
+
+```
+akash-portfolio/
+├── README.md
+└── project/
+    ├── portfolio.html       # Single-file portfolio
+    ├── tweaks-panel.jsx     # Design-time tweaks panel (not used in production)
+    └── assets/
+        ├── everstage-logo.jpg
+        ├── chargebee-logo.png
+        ├── rippling-logo.webp
+        └── akash.png
+```
+
+---
+
+## Security
+
+- No API keys, tokens, or credentials anywhere in the codebase.
+- All external links use `rel="noopener"` to prevent tab-napping.
+- Email link uses a Gmail compose URL — no server-side form handling required.
